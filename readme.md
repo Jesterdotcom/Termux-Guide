@@ -33,3 +33,5 @@
 
 * **chmod +x [file]**: Make a script executable.
 * **./[file]**: Run a script.
+
+> This is only for beginner. 

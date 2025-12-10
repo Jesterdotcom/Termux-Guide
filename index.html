@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Termux Commands Guide</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #00BFA5;
+            --secondary: #1A237E;
+            --dark: #121212;
+            --light: #f5f5f5;
+            --card-bg: #1E1E2E;
+            --accent: #BB86FC;
+            --warning: #FFC107;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark) 0%, #1a1a2e 100%);
+            color: var(--light);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: clamp(2rem, 5vw, 2.8rem);
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 15px;
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            color: #aaa;
+            max-width: 600px;
+            margin: 0 auto 30px;
+        }
+
+        .warning {
+            background-color: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .warning i {
+            color: var(--warning);
+            margin-right: 10px;
+        }
+
+        .commands-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .category-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            height: fit-content;
+        }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .category-card.active {
+            border: 1px solid var(--primary);
+        }
+
+        .card-header {
+            background: linear-gradient(to right, var(--secondary), var(--primary));
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            user-select: none;
+        }
+
+        .card-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .card-header i {
+            font-size: 1.8rem;
+            transition: transform 0.3s;
+        }
+
+        .category-card.active .card-header i {
+            transform: rotate(180deg);
+        }
+
+        .card-content {
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out, padding 0.5s ease-out;
+        }
+
+        .card-content.active {
+            padding: 20px;
+            max-height: 1000px;
+        }
+
+        .command-item {
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .command-item:last-child {
+            border-bottom: none;
+        }
+
+        .command-name {
+            font-family: 'Courier New', monospace;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: var(--accent);
+            font-weight: bold;
+            white-space: nowrap;
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .command-name:hover {
+            background-color: rgba(187, 134, 252, 0.2);
+            border-color: var(--accent);
+        }
+
+        .command-desc {
+            color: #ccc;
+            font-size: 0.95rem;
+            text-align: right;
+            line-height: 1.5;
+        }
+
+        .terminal-container {
+            background-color: #000;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            font-family: 'Courier New', monospace;
+            min-height: 200px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        .terminal-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .terminal-dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .dot.red { background-color: #FF5F56; }
+        .dot.yellow { background-color: #FFBD2E; }
+        .dot.green { background-color: #27CA3F; }
+
+        .terminal-title {
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        .clear-terminal {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #aaa;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .clear-terminal:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .terminal-output {
+            line-height: 1.8;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .terminal-output::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .terminal-output::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .terminal-output::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 3px;
+        }
+
+        .terminal-line {
+            margin-bottom: 5px;
+        }
+
+        .prompt {
+            color: var(--primary);
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .command {
+            color: var(--light);
+        }
+
+        .output {
+            color: #aaa;
+            margin-left: 20px;
+            font-style: italic;
+        }
+
+        .typing-area {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 20px;
+            background-color: var(--primary);
+            animation: blink 1s infinite;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: #777;
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .expand-all {
+            display: block;
+            margin: 20px auto 40px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: bold;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .expand-all:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(187, 134, 252, 0.4);
+        }
+
+        .expand-all:active {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .commands-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .command-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            .command-desc {
+                text-align: left;
+                width: 100%;
+            }
+            
+            .terminal-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .terminal-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .terminal-output {
+                max-height: 250px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 15px;
+            }
+            
+            .container {
+                padding: 0 10px;
+            }
+            
+            .card-header {
+                padding: 15px;
+            }
+            
+            .terminal-container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-terminal"></i>
+            </div>
+            <h1>Termux Commands Guide</h1>
+            <p class="subtitle">An interactive reference for commonly used Termux commands. Click on any category to reveal the commands.</p>
+            
+            <div class="warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>This guide is designed for beginners. Use commands carefully in your Termux environment.</span>
+            </div>
+        </header>
+        
+        <button class="expand-all" id="expandAllBtn">
+            <i class="fas fa-expand-alt"></i> Expand All Categories
+        </button>
+        
+        <div class="commands-container" id="commandsContainer">
+            <!-- Categories will be populated by JavaScript -->
+        </div>
+        
+        <div class="terminal-container">
+            <div class="terminal-header">
+                <div class="terminal-title">Termux Command Simulator</div>
+                <div class="terminal-controls">
+                    <div class="terminal-dots">
+                        <div class="dot red"></div>
+                        <div class="dot yellow"></div>
+                        <div class="dot green"></div>
+                    </div>
+                    <button class="clear-terminal" id="clearTerminalBtn">
+                        <i class="fas fa-trash-alt"></i> Clear Terminal
+                    </button>
+                </div>
+            </div>
+            <div class="terminal-output" id="terminalOutput">
+                <div class="terminal-line">
+                    <span class="prompt">$</span> <span class="command">pwd</span>
+                    <div class="output">/data/data/com.termux/files/home</div>
+                </div>
+                <div class="terminal-line">
+                    <span class="prompt">$</span> <span class="command">whoami</span>
+                    <div class="output">u0_a257</div>
+                </div>
+                <div class="terminal-line typing-area">
+                    <span class="prompt">$</span> <span id="typingCommand"></span><span class="cursor"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Command data organized by categories
+        const commandsData = {
+            "Basic Navigation": [
+                { command: "pwd", description: "Show the current folder" },
+                { command: "ls", description: "List files and folders" },
+                { command: "cd [folder]", description: "Move into a folder" },
+                { command: "cd ..", description: "Move to the parent folder" },
+                { command: "clear", description: "Clean the screen" }
+            ],
+            "File and Folder Management": [
+                { command: "mkdir [name]", description: "Create a new folder" },
+                { command: "touch [file]", description: "Create an empty file" },
+                { command: "cp [source] [target]", description: "Copy a file" },
+                { command: "mv [old] [new]", description: "Rename or move a file" },
+                { command: "rm [file]", description: "Delete a file" },
+                { command: "rm -r [folder]", description: "Delete a folder and its contents" }
+            ],
+            "Package Management": [
+                { command: "pkg update", description: "Refresh package lists" },
+                { command: "pkg upgrade", description: "Install available updates" },
+                { command: "pkg install [name]", description: "Install a package" }
+            ],
+            "Text Viewing and Editing": [
+                { command: "cat [file]", description: "Show file content" },
+                { command: "less [file]", description: "Scroll through a file" },
+                { command: "nano [file]", description: "Open a simple text editor" }
+            ],
+            "Running Scripts": [
+                { command: "chmod +x [file]", description: "Make a script executable" },
+                { command: "./[file]", description: "Run a script" }
+            ]
+        };
+
+        // Icons for each category
+        const categoryIcons = {
+            "Basic Navigation": "fas fa-folder-open",
+            "File and Folder Management": "fas fa-file-alt",
+            "Package Management": "fas fa-box-open",
+            "Text Viewing and Editing": "fas fa-edit",
+            "Running Scripts": "fas fa-play-circle"
+        };
+
+        // Terminal commands to cycle through
+        const terminalCommands = [
+            "pwd",
+            "ls -la",
+            "cd /sdcard",
+            "nano script.sh",
+            "pkg install python",
+            "chmod +x install.sh"
+        ];
+
+        // Terminal command outputs
+        const commandOutputs = {
+            "pwd": "/data/data/com.termux/files/home",
+            "ls -la": "total 12\ndrwx------ 3 u0_a257 u0_a257 4096 Dec 10 10:30 .\ndrwx------ 3 u0_a257 u0_a257 4096 Dec 10 10:30 ..\n-rw------- 1 u0_a257 u0_a257  120 Dec 10 10:30 .bashrc",
+            "cd /sdcard": "Changed directory to /sdcard",
+            "nano script.sh": "GNU nano 7.2 opened script.sh",
+            "pkg install python": "Reading package lists... Done\nBuilding dependency tree... Done\npython is already the newest version (3.11.0).",
+            "chmod +x install.sh": "Made install.sh executable"
+        };
+
+        // Default output for unknown commands
+        const defaultOutput = "Command executed successfully";
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            renderCommandCards();
+            setupTerminalAnimation();
+            setupExpandAllButton();
+            setupClearTerminalButton();
+        });
+
+        // Render command cards for each category
+        function renderCommandCards() {
+            const container = document.getElementById('commandsContainer');
+            container.innerHTML = '';
+            
+            for (const [category, commands] of Object.entries(commandsData)) {
+                const card = document.createElement('div');
+                card.className = 'category-card';
+                card.dataset.category = category;
+                
+                card.innerHTML = `
+                    <div class="card-header">
+                        <h2>${category}</h2>
+                        <i class="${categoryIcons[category]}"></i>
+                    </div>
+                    <div class="card-content">
+                        ${commands.map(cmd => `
+                            <div class="command-item">
+                                <div class="command-name" data-command="${cmd.command}">${cmd.command}</div>
+                                <div class="command-desc">${cmd.description}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                
+                // Add click event to toggle card content
+                card.addEventListener('click', function(e) {
+                    // Don't toggle if clicking on a command name
+                    if (e.target.classList.contains('command-name')) {
+                        return;
+                    }
+                    
+                    const content = this.querySelector('.card-content');
+                    const isActive = content.classList.contains('active');
+                    
+                    // Close all other cards
+                    document.querySelectorAll('.card-content.active').forEach(activeContent => {
+                        if (activeContent !== content) {
+                            activeContent.classList.remove('active');
+                            activeContent.parentElement.classList.remove('active');
+                        }
+                    });
+                    
+                    // Toggle current card
+                    content.classList.toggle('active');
+                    this.classList.toggle('active');
+                    
+                    // Update expand all button text
+                    updateExpandAllButtonText();
+                });
+                
+                container.appendChild(card);
+            }
+            
+            // Add event listeners to command names
+            document.querySelectorAll('.command-name').forEach(commandElement => {
+                commandElement.addEventListener('click', function(e) {
+                    e.stopPropagation(); // Prevent card toggle
+                    executeCommand(this.dataset.command);
+                });
+            });
+        }
+
+        // Setup terminal typing animation
+        function setupTerminalAnimation() {
+            const typingElement = document.getElementById('typingCommand');
+            let commandIndex = 0;
+            let charIndex = 0;
+            let isDeleting = false;
+            let typingSpeed = 100;
+            let isPaused = false;
+            
+            function typeCommand() {
+                if (isPaused) {
+                    setTimeout(typeCommand, 500);
+                    return;
+                }
+                
+                const currentCommand = terminalCommands[commandIndex];
+                
+                if (!isDeleting && charIndex <= currentCommand.length) {
+                    typingElement.textContent = currentCommand.substring(0, charIndex);
+                    charIndex++;
+                    typingSpeed = 100;
+                } else if (isDeleting && charIndex >= 0) {
+                    typingElement.textContent = currentCommand.substring(0, charIndex);
+                    charIndex--;
+                    typingSpeed = 50;
+                }
+                
+                // Switch between typing and deleting
+                if (!isDeleting && charIndex === currentCommand.length + 1) {
+                    isDeleting = true;
+                    typingSpeed = 1500; // Pause at end
+                } else if (isDeleting && charIndex === -1) {
+                    isDeleting = false;
+                    commandIndex = (commandIndex + 1) % terminalCommands.length;
+                    typingSpeed = 800; // Pause before next command
+                }
+                
+                setTimeout(typeCommand, typingSpeed);
+            }
+            
+            // Start typing animation after a short delay
+            setTimeout(typeCommand, 1000);
+            
+            // Pause animation when user interacts with terminal
+            typingElement.addEventListener('mouseenter', () => isPaused = true);
+            typingElement.addEventListener('mouseleave', () => isPaused = false);
+        }
+
+        // Execute a command in the terminal
+        function executeCommand(command) {
+            const terminalOutput = document.getElementById('terminalOutput');
+            const typingLine = terminalOutput.querySelector('.typing-area');
+            
+            // Get output for the command
+            const output = commandOutputs[command.split(' ')[0]] || defaultOutput;
+            
+            // Create new terminal line
+            const newLine = document.createElement('div');
+            newLine.className = 'terminal-line';
+            newLine.innerHTML = `
+                <span class="prompt">$</span> <span class="command">${command}</span>
+                <div class="output">${output}</div>
+            `;
+            
+            // Insert before the typing line
+            terminalOutput.insertBefore(newLine, typingLine);
+            
+            // Scroll to bottom of terminal
+            terminalOutput.scrollTop = terminalOutput.scrollHeight;
+            
+            // Highlight the executed command briefly
+            const commandElement = event.target;
+            commandElement.style.backgroundColor = 'rgba(0, 191, 165, 0.3)';
+            commandElement.style.borderColor = 'var(--primary)';
+            
+            setTimeout(() => {
+                commandElement.style.backgroundColor = '';
+                commandElement.style.borderColor = '';
+            }, 500);
+        }
+
+        // Setup expand all button functionality
+        function setupExpandAllButton() {
+            const expandAllBtn = document.getElementById('expandAllBtn');
+            
+            expandAllBtn.addEventListener('click', function() {
+                const allCards = document.querySelectorAll('.category-card');
+                const allContents = document.querySelectorAll('.card-content');
+                const anyActive = Array.from(allContents).some(content => content.classList.contains('active'));
+                
+                if (anyActive) {
+                    // Collapse all
+                    allContents.forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    allCards.forEach(card => {
+                        card.classList.remove('active');
+                    });
+                    expandAllBtn.innerHTML = '<i class="fas fa-expand-alt"></i> Expand All Categories';
+                } else {
+                    // Expand all
+                    allContents.forEach(content => {
+                        content.classList.add('active');
+                    });
+                    allCards.forEach(card => {
+                        card.classList.add('active');
+                    });
+                    expandAllBtn.innerHTML = '<i class="fas fa-compress-alt"></i> Collapse All Categories';
+                }
+            });
+        }
+
+        // Update expand all button text based on card states
+        function updateExpandAllButtonText() {
+            const expandAllBtn = document.getElementById('expandAllBtn');
+            const allContents = document.querySelectorAll('.card-content');
+            const allActive = Array.from(allContents).every(content => content.classList.contains('active'));
+            const anyActive = Array.from(allContents).some(content => content.classList.contains('active'));
+            
+            if (allActive) {
+                expandAllBtn.innerHTML = '<i class="fas fa-compress-alt"></i> Collapse All Categories';
+            } else if (anyActive) {
+                expandAllBtn.innerHTML = '<i class="fas fa-expand-alt"></i> Expand All Categories';
+            } else {
+                expandAllBtn.innerHTML = '<i class="fas fa-expand-alt"></i> Expand All Categories';
+            }
+        }
+
+        // Setup clear terminal button
+        function setupClearTerminalButton() {
+            const clearTerminalBtn = document.getElementById('clearTerminalBtn');
+            
+            clearTerminalBtn.addEventListener('click', function() {
+                const terminalOutput = document.getElementById('terminalOutput');
+                const typingLine = terminalOutput.querySelector('.typing-area');
+                
+                // Remove all lines except the typing line
+                const lines = terminalOutput.querySelectorAll('.terminal-line');
+                lines.forEach(line => {
+                    if (line !== typingLine) {
+                        line.remove();
+                    }
+                });
+                
+                // Add a cleared message
+                const clearedLine = document.createElement('div');
+                clearedLine.className = 'terminal-line';
+                clearedLine.innerHTML = '<div class="output" style="color: var(--primary);"><i>Terminal cleared</i></div>';
+                terminalOutput.insertBefore(clearedLine, typingLine);
+                
+                // Scroll to bottom
+                terminalOutput.scrollTop = terminalOutput.scrollHeight;
+            });
+        }
+
+        // Make command names clickable even after new cards are rendered
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('command-name') && !e.target.hasAttribute('data-listener')) {
+                e.target.setAttribute('data-listener', 'true');
+                e.target.addEventListener('click', function(ev) {
+                    ev.stopPropagation();
+                    executeCommand(this.dataset.command);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

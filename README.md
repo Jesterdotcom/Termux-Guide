@@ -1,3 +1,4 @@
+> For interactive visit [Live Demo](Jesterdotcom.github.io/Termux-Guide)
 # Commonly Used Termux Commands
 
 ## Basic Navigation
